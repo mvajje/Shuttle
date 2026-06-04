@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shuttle">
+<title>Shuttle — Badminton Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #c8f53e;
+    --accent2: #f53ec8;
+    --accent3: #3ec8f5;
+    --text: #f0f0f8;
+    --muted: #6b6b88;
+    --win: #3ef57a;
+    --loss: #f53e3e;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --r: 12px;
+    --r2: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -40%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(200,245,62,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(62,200,245,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 80px;
+    position: relative;
+    z-index: 1;
+    min-height: 100dvh;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; animation: fadeUp 0.3s ease; }
+  .view.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo span { color: var(--muted); font-size: 0.9rem; font-family: var(--font-body); font-weight: 300; display: block; letter-spacing: 0; }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: var(--r);
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 18px;
+  }
+  .icon-btn:hover, .icon-btn:active { background: var(--bg3); color: var(--text); border-color: var(--accent); }
+
+  /* ── NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 480px;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 0;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.2s;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .nav-item.active { color: var(--accent); }
+  .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    width: 32px; height: 2px;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 24px;
+    border-radius: var(--r);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+  }
+  .btn-primary:hover { background: #d4f94a; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0) scale(0.98); }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-danger {
+    background: rgba(245,62,62,0.12);
+    color: var(--loss);
+    border: 1px solid rgba(245,62,62,0.3);
+  }
+  .btn-danger:hover { background: rgba(245,62,62,0.2); }
+
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 8px 16px; font-size: 13px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 20px;
+    margin: 12px 20px;
+  }
+
+  .card-tight { padding: 14px 16px; margin: 6px 20px; }
+
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* ── SETUP VIEW ── */
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    color: var(--text);
+    padding: 20px 20px 0;
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 4px 20px 16px;
+  }
+
+  .player-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px;
+  }
+
+  .player-chip {
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    border-radius: 40px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .player-chip.selected {
+    border-color: var(--accent);
+    background: rgba(200,245,62,0.08);
+  }
+
+  .player-chip.playing {
+    border-color: var(--accent3);
+    background: rgba(62,200,245,0.08);
+  }
+
+  .player-chip .chip-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+  }
+
+  .player-chip.selected .chip-avatar { border-color: var(--accent); color: var(--accent); }
+  .player-chip.playing .chip-avatar { border-color: var(--accent3); color: var(--accent3); }
+
+  .chip-name {
+    font-size: 14px;
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chip-check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .player-chip.selected .chip-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0a0f;
+    font-size: 11px;
+  }
+
+  .chip-delete {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-left: 2px;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .player-chip:hover .chip-delete,
+  .player-chip:active .chip-delete { color: var(--loss); background: rgba(245,62,62,0.15); }
+
+  /* ── INPUT ── */
+  .input-group {
+    margin: 0 20px 12px;
+  }
+
+  .input-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  input[type="text"], input[type="number"], select {
+    width: 100%;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  select option { background: var(--bg2); }
+
+  /* ── ADD PLAYER ROW ── */
+  .add-player-row {
+    display: flex; gap: 8px;
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+
+  .add-player-row input { flex: 1; }
+
+  /* ── COURT VIEW ── */
+  .court-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .game-badge {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    color: var(--accent);
+    background: rgba(200,245,62,0.1);
+    border: 1px solid rgba(200,245,62,0.25);
+    border-radius: 8px;
+    padding: 4px 12px;
+  }
+
+  .court-card {
+    margin: 8px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    overflow: hidden;
+  }
+
+  .court-net {
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--border) 0px, var(--border) 8px, transparent 8px, transparent 14px);
+    position: relative;
+  }
+
+  .court-net::before {
+    content: 'NET';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: -9px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 2px;
+    background: var(--card);
+    padding: 0 6px;
+  }
+
+  .court-side {
+    padding: 16px;
+  }
+
+  .team-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .team-players {
+    display: flex;
+    gap: 10px;
+  }
+
+  .team-player {
+    flex: 1;
+    background: var(--bg3);
+    border-radius: var(--r);
+    padding: 12px 10px;
+    text-align: center;
+    border: 1.5px solid var(--border);
+  }
+
+  .team-player.side-a { border-color: rgba(200,245,62,0.3); }
+  .team-player.side-b { border-color: rgba(245,62,200,0.3); }
+
+  .team-player .p-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+  }
+
+  .side-a .p-avatar { background: rgba(200,245,62,0.15); color: var(--accent); border: 1.5px solid rgba(200,245,62,0.3); }
+  .side-b .p-avatar { background: rgba(245,62,200,0.15); color: var(--accent2); border: 1.5px solid rgba(245,62,200,0.3); }
+
+  .p-name { font-size: 13px; font-weight: 600; }
+  .p-record { font-size: 11px; color: var(--muted); font-family: var(--font-mono); margin-top: 2px; }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .score-input-wrap {
+    flex: 1;
+    text-align: center;
+  }
+
+  .score-input-wrap label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .score-input-wrap.team-a label { color: var(--accent); }
+  .score-input-wrap.team-b label { color: var(--accent2); }
+
+  .score-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .score-num {
+    font-family: var(--font-display);
+    font-size: 2.8rem;
+    letter-spacing: 2px;
+    min-width: 60px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .score-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .score-btn:active { transform: scale(0.9); }
+  .team-a .score-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .team-b .score-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .vs-divider {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+
+  /* ── REST QUEUE ── */
+  .rest-queue {
+    margin: 8px 20px;
+  }
+
+  .rest-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .rest-chip {
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .rest-chip .rest-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .consecutive-warning {
+    background: rgba(245,200,62,0.1);
+    border: 1px solid rgba(245,200,62,0.3);
+    border-radius: var(--r);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #f5c83e;
+    display: flex; gap: 8px; align-items: flex-start;
+    margin: 8px 20px;
+  }
+
+  /* ── STATS VIEW ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px 12px;
+  }
+
+  .stat-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 14px 10px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  /* ── PLAYER ROW ── */
+  .player-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .player-row:last-child { border-bottom: none; }
+
+  .pr-rank {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .pr-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .pr-info { flex: 1; min-width: 0; }
+  .pr-name { font-size: 14px; font-weight: 600; }
+  .pr-sub { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+
+  .pr-stats { text-align: right; flex-shrink: 0; }
+  .pr-wins { font-family: var(--font-mono); font-size: 13px; color: var(--win); font-weight: 500; }
+  .pr-losses { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+  /* ── FAIRNESS ── */
+  .fairness-bar-wrap {
+    margin-top: 6px;
+  }
+
+  .fairness-bar-bg {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .fairness-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .fairness-score-big {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  /* ── HISTORY ── */
+  .history-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+
+  .hi-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .hi-game-num {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--accent);
+  }
+
+  .hi-score {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .hi-teams {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .hi-team { flex: 1; }
+  .hi-team.winner { color: var(--win); font-weight: 600; }
+  .hi-team.loser { color: var(--muted); }
+  .hi-vs { color: var(--muted); font-size: 11px; }
+
+  /* ── TOAST ── */
+  .toast-wrap {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 600;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+    white-space: nowrap;
+  }
+
+  @keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(0.9); } to { opacity: 1; transform: none; } }
+  @keyframes toastOut { to { opacity: 0; transform: translateY(-8px) scale(0.9); } }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r2) var(--r2) 0 0;
+    padding: 24px 20px max(24px, env(safe-area-inset-bottom));
+    width: 100%; max-width: 480px;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .modal-actions .btn { flex: 1; }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; font-weight: 500; }
+  .empty-sub { font-size: 13px; margin-top: 6px; }
+
+  /* ── SETTINGS ── */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .setting-row:last-child { border-bottom: none; }
+
+  .setting-info { flex: 1; }
+  .setting-name { font-size: 14px; font-weight: 500; }
+  .setting-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .toggle {
+    width: 44px; height: 26px;
+    background: var(--bg3);
+    border-radius: 13px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--muted);
+    top: 2px; left: 2px;
+    transition: all 0.2s;
+  }
+
+  .toggle.on { background: rgba(200,245,62,0.15); border-color: var(--accent); }
+  .toggle.on::after { background: var(--accent); transform: translateX(18px); }
+
+  .stepper {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .stepper-btn {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--bg3);
+    border: 1.5px solid var(--border);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .stepper-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .stepper-val { font-family: var(--font-mono); font-size: 16px; min-width: 28px; text-align: center; }
+
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--border); margin: 8px 20px; }
+  .pad-top { padding-top: 16px; }
+  .text-center { text-align: center; }
+  .flex-between { display: flex; justify-content: space-between; align-items: center; }
+  .gap-8 { gap: 8px; display: flex; }
+  .mt-12 { margin-top: 12px; }
+  .color-accent { color: var(--accent); }
+  .color-muted { color: var(--muted); }
+  .font-mono { font-family: var(--font-mono); }
+
+  /* Shimmer loading */
+  @keyframes shimmer {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+  }
+
+  .pulse {
+    animation: pulsate 2s ease-in-out infinite;
+  }
+
+  @keyframes pulsate {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Win/Loss badge */
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .badge-win { background: rgba(62,245,122,0.15); color: var(--win); }
+  .badge-loss { background: rgba(245,62,62,0.12); color: var(--loss); }
+  .badge-draw { background: rgba(107,107,136,0.2); color: var(--muted); }
+
+  /* Scrollable areas */
+  .scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Progress ring */
+  .ring-wrap {
+    position: relative;
+    width: 80px; height: 80px;
+    flex-shrink: 0;
+  }
+
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── SETUP VIEW ── -->
+  <div id="view-setup" class="view active">
+    <div class="app-header">
+      <div>
+        <div class="logo">SHUTTLE<span>Badminton Manager</span></div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="showNewSessionModal()" title="New session">🔄</button>
+        <button class="icon-btn" onclick="showSettingsModal()" title="Settings">⚙️</button>
+      </div>
+    </div>
+
+    <div class="section-title pad-top">PLAYERS</div>
+    <div class="section-subtitle">Select who's playing today</div>
+
+    <div class="add-player-row">
+      <input type="text" id="newPlayerName" placeholder="Add new player…" maxlength="18" onkeydown="if(event.key==='Enter') addPlayer()">
+      <button class="btn btn-primary" onclick="addPlayer()">＋</button>
+    </div>
+
+    <div id="playerGrid" class="player-grid"></div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="flex-between">
+        <span class="card-label" style="margin:0;">Selected</span>
+        <span id="selectedCount" class="font-mono color-accent" style="font-size:14px;">0 players</span>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="selectAll()">Select All</button>
+        <button class="btn btn-secondary btn-sm" onclick="selectNone()">Clear</button>
+      </div>
+    </div>
+
+    <div style="padding: 0 20px 20px;">
+      <button class="btn btn-primary btn-full" style="margin-top:8px; font-size:17px; padding:18px;" onclick="startSession()">
+        START SESSION ▶
+      </button>
+    </div>
+  </div>
+
+  <!-- ── COURT VIEW ── -->
+  <div id="view-court" class="view">
+    <div class="app-header">
+      <div>
+        <div class="logo" style="font-size:1.5rem;">COURT</div>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="undoLastGame()" title="Undo" id="undoBtn">↩</button>
+        <button class="icon-btn" onclick="endSession()" title="End">✕</button>
+      </div>
+    </div>
+
+    <div id="consecutiveWarning" class="consecutive-warning" style="display:none;">
+      ⚠️ <span id="warningText"></span>
+    </div>
+
+    <div class="court-header">
+      <div class="game-badge" id="gameBadge">GAME 1</div>
+      <div style="font-size:13px; color:var(--muted);" id="sessionInfo">0 games played</div>
+    </div>
+
+    <div class="court-card" id="courtCard">
+      <!-- Team A -->
+      <div class="court-side">
+        <div class="team-label" style="color:var(--accent)">▲ TEAM A</div>
+        <div class="team-players" id="teamAPlayers"></div>
+      </div>
+
+      <!-- Net -->
+      <div class="court-net"></div>
+
+      <!-- Team B -->
+      <div class="court-side">
+        <div class="team-label" style="color:var(--accent2)">▼ TEAM B</div>
+        <div class="team-players" id="teamBPlayers"></div>
+      </div>
+    </div>
+
+    <!-- Score entry -->
+    <div class="card" id="scoreCard">
+      <div class="card-label">ENTER SCORE</div>
+      <div class="score-row">
+        <div class="score-input-wrap team-a">
+          <label>TEAM A</label>
+          <div class="score-spinner">
+            <button class="score-btn" onclick="adjustScore('a', -1)">−</button>
+            <div class="score-num color-accent" id="scoreA">21</div>
+            <button class="score-btn" onclick="adjustScore('a', 1)">＋</button>
+          </div>
+        </div>
+        <div class="vs-divider">VS</div>
+        <div class="score-input-wrap team-b">
+          <label>TEAM B</label>
+          <div class="score-spinner">
+            <button class="score-btn" onclick="adjustScore('b', -1)">−</button>
+            <div class="score-num" style="color:var(--accent2)" id="scoreB">15</div>
+            <button class="score-btn" onclick="adjustScore('b', 1)">＋</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="recordGame()">
+        ✓ RECORD RESULT & NEXT GAME
+      </button>
+    </div>
+
+    <!-- Resting players -->
+    <div class="rest-queue">
+      <div class="card-label">RESTING</div>
+      <div class="rest-chips" id="restChips"></div>
+    </div>
+  </div>
+
+  <!-- ── STATS VIEW ── -->
+  <div id="view-stats" class="view">
+    <div class="app-header">
+      <div><div class="logo" style="font-size:1.5rem;">STATS</div></div>
+    </div>
+
+    <div id="noStatsState" class="empty-state">
+      <div class="empty-icon">📊</div>
+      <div class="empty-text">No games yet</div>
+      <div class="empty-sub">Start a session to track stats</div>
+    </div>
+
+    <div id="statsContent" style="display:none;">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="statTotalGames">0</div>
+          <div class="stat-lbl">Games</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statActivePlayers">0</div>
+          <div class="stat-lbl">Players</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statFairness" style="color:var(--accent3)">—</div>
+          <div class="stat-lbl">Fairness</div>
+        </div>
+      </div>
+
+      <!-- Fairness Dashboard -->
+      <div class="card">
+        <div class="card-label">FAIRNESS SCORE</div>
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div>
+            <div class="fairness-score-big" id="fairnessBig" style="color:var(--accent3)">—</div>
+            <div style="font-size:12px; color:var(--muted);" id="fairnessLabel">—</div>
+          </div>
+          <div class="ring-wrap">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--bg3)" stroke-width="8"/>
+              <circle id="fairnessRing" cx="40" cy="40" r="34" fill="none" stroke="var(--accent3)" stroke-width="8"
+                stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transition:stroke-dashoffset 0.5s ease"/>
+            </svg>
+            <div class="ring-text" id="fairnessRingText" style="color:var(--accent3)">—</div>
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:8px;" id="fairnessBreakdown"></div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="card">
+        <div class="card-label">LEADERBOARD</div>
+        <div id="leaderboard"></div>
+      </div>
+
+      <!-- Per-player details -->
+      <div class="card">
+        <div class="card-label">PLAY TIME BALANCE</div>
+        <div id="playTimeChart"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY VIEW ── -->
+  <div id="view-history" class="view">
+    <div class="app-header">
+      <div><div class="logo" style="font-size:1.5rem;">HISTORY</div></div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="exportHistory()" title="Export">📤</button>
+      </div>
+    </div>
+
+    <div id="noHistoryState" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">No games recorded</div>
+      <div class="empty-sub">Games will appear here after you play</div>
+    </div>
+
+    <div id="historyList" style="padding: 12px 20px;"></div>
+  </div>
+
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+  <div class="nav-item active" onclick="showView('setup')" id="nav-setup">
+    <div class="nav-icon">👥</div>
+    <div>Players</div>
+  </div>
+  <div class="nav-item" onclick="showView('court')" id="nav-court">
+    <div class="nav-icon">🏸</div>
+    <div>Court</div>
+  </div>
+  <div class="nav-item" onclick="showView('stats')" id="nav-stats">
+    <div class="nav-icon">📊</div>
+    <div>Stats</div>
+  </div>
+  <div class="nav-item" onclick="showView('history')" id="nav-history">
+    <div class="nav-icon">📋</div>
+    <div>History</div>
+  </div>
+</nav>
+
+<!-- ── MODALS ── -->
+<div class="modal-overlay hidden" id="newSessionModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔄 NEW SESSION</div>
+    <p style="font-size:14px; color:var(--muted);">This will reset all game history and stats. Player list will be kept.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('newSessionModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmNewSession()">Reset Session</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ SETTINGS</div>
+    <div class="card" style="margin: 0 0 12px;">
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Max Consecutive Games</div>
+          <div class="setting-desc">Rest a player after this many games in a row</div>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="adjustSetting('maxConsecutive', -1)">−</button>
+          <div class="stepper-val" id="settingMaxConsecutive">3</div>
+          <button class="stepper-btn" onclick="adjustSetting('maxConsecutive', 1)">＋</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Default Score</div>
+          <div class="setting-desc">Starting score for each game</div>
+        </div>
+        <div class="stepper">
+          <button class="stepper-btn" onclick="adjustSetting('defaultScore', -1)">−</button>
+          <div class="stepper-val" id="settingDefaultScore">21</div>
+          <button class="stepper-btn" onclick="adjustSetting('defaultScore', 1)">＋</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-name">Randomize First Game</div>
+          <div class="setting-desc">Randomly pick first match</div>
+        </div>
+        <div class="toggle on" id="toggleRandomFirst" onclick="toggleSetting('randomFirst')"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('settingsModal')">Done</button>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+
+let state = {
+  players: [],           // { id, name, active }
+  session: {
+    active: false,
+    activePlayers: [],   // player ids in this session
+    games: [],           // recorded games
+    currentMatch: null,  // { teamA:[ids], teamB:[ids] }
+    gamesPlayed: {},     // { pid: count }
+    wins: {},            // { pid: count }
+    losses: {},          // { pid: count }
+    teammateHistory: {}, // { pid: { pid: count } }
+    opponentHistory: {}, // { pid: { pid: count } }
+    consecutiveGames: {}, // { pid: count }
+    restQueue: [],       // pids who should rest next
+  },
+  settings: {
+    maxConsecutive: 3,
+    defaultScore: 21,
+    randomFirst: true,
+  }
+};
+
+let scoreA = 21, scoreB = 15;
+
+// ══════════════════════════════════════════════
+//  PERSISTENCE
+// ══════════════════════════════════════════════
+
+function save() {
+  try { localStorage.setItem('shuttle_state', JSON.stringify(state)); } catch(e) {}
+}
+
+function load() {
+  try {
+    const d = localStorage.getItem('shuttle_state');
+    if (d) {
+      const parsed = JSON.parse(d);
+      state = { ...state, ...parsed };
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+
+  if (name === 'stats') renderStats();
+  if (name === 'history') renderHistory();
+  if (name === 'court' && state.session.active) renderCourt();
+  if (name === 'setup') renderPlayers();
+}
+
+// ══════════════════════════════════════════════
+//  PLAYER MANAGEMENT
+// ══════════════════════════════════════════════
+
+function addPlayer() {
+  const input = document.getElementById('newPlayerName');
+  const name = input.value.trim();
+  if (!name) return;
+  if (state.players.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    toast('Player already exists');
+    return;
+  }
+  state.players.push({ id: 'p' + Date.now(), name, active: false });
+  input.value = '';
+  save();
+  renderPlayers();
+}
+
+function togglePlayer(id) {
+  const p = state.players.find(p => p.id === id);
+  if (!p) return;
+  if (state.session.active && state.session.activePlayers.includes(id)) {
+    toast('Session in progress — end it to change players');
+    return;
+  }
+  p.active = !p.active;
+  save();
+  renderPlayers();
+}
+
+function selectAll() {
+  state.players.forEach(p => p.active = true);
+  save(); renderPlayers();
+}
+
+function selectNone() {
+  state.players.forEach(p => p.active = false);
+  save(); renderPlayers();
+}
+
+function deletePlayer(id, event) {
+  event.stopPropagation();
+  if (state.session.active && state.session.activePlayers.includes(id)) {
+    toast('Cannot delete a player in an active session');
+    return;
+  }
+  state.players = state.players.filter(p => p.id !== id);
+  save();
+  renderPlayers();
+}
+
+function renderPlayers() {
+  const grid = document.getElementById('playerGrid');
+  const activePids = state.session.active ? state.session.activePlayers : [];
+  grid.innerHTML = state.players.map(p => {
+    const isPlaying = activePids.includes(p.id);
+    const cls = isPlaying ? 'playing' : (p.active ? 'selected' : '');
+    const initials = p.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const check = p.active ? '✓' : '';
+    return `
+      <div class="player-chip ${cls}" onclick="togglePlayer('${p.id}')">
+        <div class="chip-avatar">${initials}</div>
+        <div class="chip-name">${esc(p.name)}</div>
+        <div class="chip-check">${check}</div>
+        <div class="chip-delete" onclick="deletePlayer('${p.id}', event)" title="Remove player">✕</div>
+      </div>`;
+  }).join('');
+
+  const count = state.players.filter(p => p.active).length;
+  document.getElementById('selectedCount').textContent = `${count} player${count !== 1 ? 's' : ''}`;
+}
+
+// ══════════════════════════════════════════════
+//  SESSION
+// ══════════════════════════════════════════════
+
+function startSession() {
+  const active = state.players.filter(p => p.active);
+  if (active.length < 4) { toast('Select at least 4 players'); return; }
+  if (active.length > 20) { toast('Maximum 20 players'); return; }
+
+  state.session = {
+    active: true,
+    activePlayers: active.map(p => p.id),
+    games: [],
+    currentMatch: null,
+    gamesPlayed: {},
+    wins: {},
+    losses: {},
+    teammateHistory: {},
+    opponentHistory: {},
+    consecutiveGames: {},
+    restQueue: [],
+  };
+
+  active.forEach(p => {
+    state.session.gamesPlayed[p.id] = 0;
+    state.session.wins[p.id] = 0;
+    state.session.losses[p.id] = 0;
+    state.session.consecutiveGames[p.id] = 0;
+    state.session.teammateHistory[p.id] = {};
+    state.session.opponentHistory[p.id] = {};
+  });
+
+  generateNextMatch();
+  save();
+  showView('court');
+  toast('Session started! 🏸');
+}
+
+function endSession() {
+  if (!state.session.active) return;
+  state.session.active = false;
+  save();
+  showView('setup');
+  toast('Session ended');
+}
+
+function confirmNewSession() {
+  closeModal('newSessionModal');
+  state.session = {
+    active: false,
+    activePlayers: [],
+    games: [],
+    currentMatch: null,
+    gamesPlayed: {},
+    wins: {},
+    losses: {},
+    teammateHistory: {},
+    opponentHistory: {},
+    consecutiveGames: {},
+    restQueue: [],
+  };
+  save();
+  renderPlayers();
+  toast('Session reset');
+}
+
+// ══════════════════════════════════════════════
+//  MATCH GENERATION  (the smart algorithm)
+// ══════════════════════════════════════════════
+
+function generateNextMatch() {
+  const sess = state.session;
+  const pids = sess.activePlayers;
+  const n = pids.length;
+  const maxCons = state.settings.maxConsecutive;
+
+  // 1. Determine who MUST rest (hit max consecutive)
+  const mustRest = pids.filter(id => sess.consecutiveGames[id] >= maxCons);
+
+  // 2. Build eligible pool (not forced to rest)
+  let eligible = pids.filter(id => !mustRest.includes(id));
+
+  // Ensure we have at least 4 eligible; if not relax forced rest
+  if (eligible.length < 4) eligible = [...pids];
+
+  // 3. Score each possible 4-player combo, pick best (lowest cost)
+  // For performance with large N, sample if needed
+  const combos = choose4(eligible);
+  let best = null, bestScore = Infinity;
+
+  for (const four of combos) {
+    const pairings = [
+      { a: [four[0], four[1]], b: [four[2], four[3]] },
+      { a: [four[0], four[2]], b: [four[1], four[3]] },
+      { a: [four[0], four[3]], b: [four[1], four[2]] },
+    ];
+    for (const p of pairings) {
+      const cost = matchCost(p.a, p.b, sess, pids);
+      if (cost < bestScore) { bestScore = cost; best = { teamA: p.a, teamB: p.b }; }
+    }
+  }
+
+  sess.currentMatch = best;
+  sess.restQueue = pids.filter(id => !best.teamA.includes(id) && !best.teamB.includes(id));
+  scoreA = state.settings.defaultScore;
+  scoreB = Math.max(0, state.settings.defaultScore - 6);
+  document.getElementById('scoreA').textContent = scoreA;
+  document.getElementById('scoreB').textContent = scoreB;
+}
+
+function matchCost(teamA, teamB, sess, allPids) {
+  let cost = 0;
+  const all4 = [...teamA, ...teamB];
+
+  // Penalise players with too many games (fairness)
+  const maxGames = Math.max(...allPids.map(id => sess.gamesPlayed[id] || 0));
+  for (const id of all4) {
+    cost += (maxGames - (sess.gamesPlayed[id] || 0)) * -2; // Prefer less-played
+    cost += (sess.consecutiveGames[id] || 0) * 3;           // Avoid already-on-a-streak
+  }
+
+  // Penalise repeated teammates
+  for (let i = 0; i < teamA.length; i++) {
+    for (let j = i + 1; j < teamA.length; j++) {
+      cost += (sess.teammateHistory[teamA[i]][teamA[j]] || 0) * 5;
+    }
+  }
+  for (let i = 0; i < teamB.length; i++) {
+    for (let j = i + 1; j < teamB.length; j++) {
+      cost += (sess.teammateHistory[teamB[i]][teamB[j]] || 0) * 5;
+    }
+  }
+
+  // Penalise repeated opponents (less than teammates)
+  for (const a of teamA) {
+    for (const b of teamB) {
+      cost += (sess.opponentHistory[a][b] || 0) * 2;
+    }
+  }
+
+  // Small random tiebreaker
+  cost += Math.random() * 0.5;
+
+  return cost;
+}
+
+// Generate all C(n,4) combinations — cap at 300 for speed
+function choose4(arr) {
+  const result = [];
+  const n = arr.length;
+  if (n < 4) return result;
+  for (let a = 0; a < n - 3; a++)
+    for (let b = a+1; b < n-2; b++)
+      for (let c = b+1; c < n-1; c++)
+        for (let d = c+1; d < n; d++) {
+          result.push([arr[a], arr[b], arr[c], arr[d]]);
+          if (result.length >= 300) return result;
+        }
+  return result;
+}
+
+// ══════════════════════════════════════════════
+//  RECORD GAME
+// ══════════════════════════════════════════════
+
+function recordGame() {
+  const sess = state.session;
+  if (!sess.currentMatch) return;
+  const { teamA, teamB } = sess.currentMatch;
+
+  const winner = scoreA > scoreB ? 'A' : (scoreB > scoreA ? 'B' : 'draw');
+
+  // Save game
+  sess.games.push({
+    num: sess.games.length + 1,
+    teamA: [...teamA],
+    teamB: [...teamB],
+    scoreA,
+    scoreB,
+    winner,
+    ts: Date.now(),
+  });
+
+  // Update stats
+  const all4 = [...teamA, ...teamB];
+  for (const id of all4) {
+    sess.gamesPlayed[id] = (sess.gamesPlayed[id] || 0) + 1;
+  }
+
+  const winTeam = winner === 'A' ? teamA : (winner === 'B' ? teamB : []);
+  const loseTeam = winner === 'A' ? teamB : (winner === 'B' ? teamA : []);
+  for (const id of winTeam) sess.wins[id] = (sess.wins[id] || 0) + 1;
+  for (const id of loseTeam) sess.losses[id] = (sess.losses[id] || 0) + 1;
+
+  // Teammate history
+  for (const team of [teamA, teamB]) {
+    for (let i = 0; i < team.length; i++) {
+      for (let j = i+1; j < team.length; j++) {
+        const [a, b] = [team[i], team[j]];
+        sess.teammateHistory[a][b] = (sess.teammateHistory[a][b] || 0) + 1;
+        sess.teammateHistory[b][a] = (sess.teammateHistory[b][a] || 0) + 1;
+      }
+    }
+  }
+
+  // Opponent history
+  for (const a of teamA) {
+    for (const b of teamB) {
+      sess.opponentHistory[a][b] = (sess.opponentHistory[a][b] || 0) + 1;
+      sess.opponentHistory[b][a] = (sess.opponentHistory[b][a] || 0) + 1;
+    }
+  }
+
+  // Consecutive games
+  const playing4 = new Set(all4);
+  for (const id of sess.activePlayers) {
+    if (playing4.has(id)) {
+      sess.consecutiveGames[id] = (sess.consecutiveGames[id] || 0) + 1;
+    } else {
+      sess.consecutiveGames[id] = 0;
+    }
+  }
+
+  generateNextMatch();
+  save();
+  renderCourt();
+  toast(`Game ${sess.games.length} recorded! ${winner === 'A' ? 'Team A' : winner === 'B' ? 'Team B' : 'Draw'} wins`);
+}
+
+// ══════════════════════════════════════════════
+//  UNDO
+// ══════════════════════════════════════════════
+
+function undoLastGame() {
+  const sess = state.session;
+  if (!sess.games.length) { toast('Nothing to undo'); return; }
+
+  const last = sess.games.pop();
+  const all4 = [...last.teamA, ...last.teamB];
+
+  // Revert stats
+  for (const id of all4) sess.gamesPlayed[id] = Math.max(0, (sess.gamesPlayed[id] || 0) - 1);
+
+  const winTeam = last.winner === 'A' ? last.teamA : last.teamB;
+  const loseTeam = last.winner === 'A' ? last.teamB : last.teamA;
+  if (last.winner !== 'draw') {
+    for (const id of winTeam) sess.wins[id] = Math.max(0, (sess.wins[id]||0) - 1);
+    for (const id of loseTeam) sess.losses[id] = Math.max(0, (sess.losses[id]||0) - 1);
+  }
+
+  // Revert teammate history
+  for (const team of [last.teamA, last.teamB]) {
+    for (let i = 0; i < team.length; i++) {
+      for (let j = i+1; j < team.length; j++) {
+        const [a, b] = [team[i], team[j]];
+        sess.teammateHistory[a][b] = Math.max(0, (sess.teammateHistory[a][b]||0) - 1);
+        sess.teammateHistory[b][a] = Math.max(0, (sess.teammateHistory[b][a]||0) - 1);
+      }
+    }
+  }
+
+  // Revert opponent history
+  for (const a of last.teamA) {
+    for (const b of last.teamB) {
+      sess.opponentHistory[a][b] = Math.max(0, (sess.opponentHistory[a][b]||0) - 1);
+      sess.opponentHistory[b][a] = Math.max(0, (sess.opponentHistory[b][a]||0) - 1);
+    }
+  }
+
+  // Revert consecutive — recalculate from games
+  for (const id of sess.activePlayers) sess.consecutiveGames[id] = 0;
+  for (let i = sess.games.length - 1; i >= 0; i--) {
+    const g = sess.games[i];
+    const gPlayers = new Set([...g.teamA, ...g.teamB]);
+    for (const id of sess.activePlayers) {
+      if (gPlayers.has(id)) sess.consecutiveGames[id]++;
+      else break;
+    }
+    break; // only care about last streak
+  }
+
+  generateNextMatch();
+  save();
+  renderCourt();
+  toast('↩ Last game undone');
+}
+
+// ══════════════════════════════════════════════
+//  RENDER COURT
+// ══════════════════════════════════════════════
+
+function renderCourt() {
+  if (!state.session.active || !state.session.currentMatch) return;
+
+  const sess = state.session;
+  const { teamA, teamB } = sess.currentMatch;
+
+  document.getElementById('gameBadge').textContent = `GAME ${sess.games.length + 1}`;
+  document.getElementById('sessionInfo').textContent = `${sess.games.length} game${sess.games.length !== 1 ? 's' : ''} played`;
+
+  function playerCard(id, side) {
+    const p = getPlayer(id);
+    const initials = p.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const w = sess.wins[id] || 0;
+    const l = sess.losses[id] || 0;
+    return `
+      <div class="team-player ${side}">
+        <div class="p-avatar">${initials}</div>
+        <div class="p-name">${esc(p.name)}</div>
+        <div class="p-record">${w}W ${l}L</div>
+      </div>`;
+  }
+
+  document.getElementById('teamAPlayers').innerHTML = teamA.map(id => playerCard(id, 'side-a')).join('');
+  document.getElementById('teamBPlayers').innerHTML = teamB.map(id => playerCard(id, 'side-b')).join('');
+
+  // Rest chips
+  const restChips = document.getElementById('restChips');
+  restChips.innerHTML = sess.restQueue.map(id => {
+    const p = getPlayer(id);
+    const cons = sess.consecutiveGames[id] || 0;
+    return `<div class="rest-chip">
+      <div class="rest-dot"></div>
+      ${esc(p.name)}
+      ${cons > 0 ? `<span class="font-mono color-muted" style="font-size:11px;">${cons}🔥</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // Consecutive warning
+  const maxCons = state.settings.maxConsecutive;
+  const atLimit = sess.activePlayers.filter(id => (sess.consecutiveGames[id] || 0) >= maxCons);
+  const nearLimit = sess.activePlayers.filter(id => (sess.consecutiveGames[id] || 0) === maxCons - 1 && !atLimit.includes(id));
+
+  const warn = document.getElementById('consecutiveWarning');
+  if (atLimit.length) {
+    warn.style.display = 'flex';
+    document.getElementById('warningText').textContent =
+      `${atLimit.map(id => getPlayer(id).name).join(', ')} must rest this round (${maxCons} game limit)`;
+  } else if (nearLimit.length) {
+    warn.style.display = 'flex';
+    document.getElementById('warningText').textContent =
+      `${nearLimit.map(id => getPlayer(id).name).join(', ')} will hit max consecutive next game`;
+  } else {
+    warn.style.display = 'none';
+  }
+
+  // Undo button enabled if there are games
+  document.getElementById('undoBtn').style.opacity = sess.games.length ? '1' : '0.3';
+}
+
+function adjustScore(team, delta) {
+  if (team === 'a') {
+    scoreA = Math.max(0, scoreA + delta);
+    document.getElementById('scoreA').textContent = scoreA;
+  } else {
+    scoreB = Math.max(0, scoreB + delta);
+    document.getElementById('scoreB').textContent = scoreB;
+  }
+}
+
+// ══════════════════════════════════════════════
+//  RENDER STATS
+// ══════════════════════════════════════════════
+
+function renderStats() {
+  const sess = state.session;
+  const hasData = sess.games.length > 0;
+
+  document.getElementById('noStatsState').style.display = hasData ? 'none' : 'block';
+  document.getElementById('statsContent').style.display = hasData ? 'block' : 'none';
+  if (!hasData) return;
+
+  const pids = sess.activePlayers;
+  document.getElementById('statTotalGames').textContent = sess.games.length;
+  document.getElementById('statActivePlayers').textContent = pids.length;
+
+  // Fairness score: based on std dev of games played
+  const played = pids.map(id => sess.gamesPlayed[id] || 0);
+  const mean = played.reduce((a,b)=>a+b,0) / played.length;
+  const variance = played.reduce((a,b) => a + (b-mean)**2, 0) / played.length;
+  const stdDev = Math.sqrt(variance);
+  const maxPossibleStdDev = mean;
+  const fairness = maxPossibleStdDev > 0 ? Math.max(0, Math.round((1 - stdDev / maxPossibleStdDev) * 100)) : 100;
+  const fLabel = fairness >= 90 ? 'Excellent' : fairness >= 75 ? 'Good' : fairness >= 55 ? 'Fair' : 'Unbalanced';
+  const fColor = fairness >= 90 ? 'var(--win)' : fairness >= 75 ? 'var(--accent3)' : fairness >= 55 ? 'var(--accent)' : 'var(--loss)';
+
+  document.getElementById('statFairness').textContent = fairness + '%';
+  document.getElementById('fairnessBig').textContent = fairness + '%';
+  document.getElementById('fairnessBig').style.color = fColor;
+  document.getElementById('fairnessLabel').textContent = fLabel;
+  document.getElementById('fairnessRing').style.stroke = fColor;
+  document.getElementById('fairnessRingText').textContent = fairness + '%';
+  document.getElementById('fairnessRingText').style.color = fColor;
+  const circumference = 213.6;
+  document.getElementById('fairnessRing').style.strokeDashoffset = circumference - (fairness / 100) * circumference;
+
+  // Breakdown
+  const breakdown = document.getElementById('fairnessBreakdown');
+  const maxGames = Math.max(...played);
+  const minGames = Math.min(...played);
+  breakdown.innerHTML = `
+    <div style="display:flex; justify-content:space-between; font-size:12px;">
+      <span style="color:var(--muted)">Most played</span>
+      <span class="font-mono" style="color:var(--text)">${maxGames} games</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-size:12px;">
+      <span style="color:var(--muted)">Least played</span>
+      <span class="font-mono" style="color:var(--text)">${minGames} games</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-size:12px;">
+      <span style="color:var(--muted)">Spread</span>
+      <span class="font-mono" style="color:${stdDev < 0.8 ? 'var(--win)' : 'var(--accent)'}">${stdDev.toFixed(2)} σ</span>
+    </div>`;
+
+  // Leaderboard
+  const sorted = [...pids].sort((a, b) => {
+    const wA = sess.wins[a] || 0, wB = sess.wins[b] || 0;
+    const rA = wA / Math.max(1, sess.gamesPlayed[a] || 1);
+    const rB = wB / Math.max(1, sess.gamesPlayed[b] || 1);
+    return rB - rA || wB - wA;
+  });
+
+  document.getElementById('leaderboard').innerHTML = sorted.map((id, i) => {
+    const p = getPlayer(id);
+    const w = sess.wins[id] || 0;
+    const l = sess.losses[id] || 0;
+    const g = sess.gamesPlayed[id] || 0;
+    const rate = g ? Math.round((w/g)*100) : 0;
+    const initials = p.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+    return `
+      <div class="player-row">
+        <div class="pr-rank">${medal || (i+1)}</div>
+        <div class="pr-avatar">${initials}</div>
+        <div class="pr-info">
+          <div class="pr-name">${esc(p.name)}</div>
+          <div class="pr-sub">${g} games · ${rate}% win rate</div>
+        </div>
+        <div class="pr-stats">
+          <div class="pr-wins">${w}W</div>
+          <div class="pr-losses">${l}L</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Play time chart
+  const sortedByGames = [...pids].sort((a,b) => (sess.gamesPlayed[b]||0) - (sess.gamesPlayed[a]||0));
+  document.getElementById('playTimeChart').innerHTML = sortedByGames.map(id => {
+    const p = getPlayer(id);
+    const g = sess.gamesPlayed[id] || 0;
+    const pct = maxGames > 0 ? (g / maxGames) * 100 : 0;
+    const color = pct >= 90 ? 'var(--win)' : pct >= 60 ? 'var(--accent)' : 'var(--accent2)';
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+          <span>${esc(p.name)}</span>
+          <span class="font-mono">${g} games</span>
+        </div>
+        <div class="fairness-bar-bg">
+          <div class="fairness-bar-fill" style="width:${pct}%; background:${color};"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  RENDER HISTORY
+// ══════════════════════════════════════════════
+
+function renderHistory() {
+  const sess = state.session;
+  const noState = document.getElementById('noHistoryState');
+  const list = document.getElementById('historyList');
+
+  if (!sess.games.length) {
+    noState.style.display = 'block';
+    list.innerHTML = '';
+    return;
+  }
+
+  noState.style.display = 'none';
+  const reversed = [...sess.games].reverse();
+  list.innerHTML = reversed.map(g => {
+    const tA = g.teamA.map(id => getPlayer(id).name).join(' & ');
+    const tB = g.teamB.map(id => getPlayer(id).name).join(' & ');
+    const winnerTeam = g.winner === 'A' ? tA : g.winner === 'B' ? tB : null;
+    const badge = g.winner === 'A' || g.winner === 'B'
+      ? `<span class="badge badge-win">${g.winner === 'A' ? 'A' : 'B'} WINS</span>`
+      : `<span class="badge badge-draw">DRAW</span>`;
+    return `
+      <div class="history-item">
+        <div class="hi-meta">
+          <div class="hi-game-num">GAME ${g.num}</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="hi-score font-mono">${g.scoreA} – ${g.scoreB}</div>
+            ${badge}
+          </div>
+        </div>
+        <div class="hi-teams">
+          <div class="hi-team ${g.winner === 'A' ? 'winner' : 'loser'}">${esc(tA)}</div>
+          <div class="hi-vs">VS</div>
+          <div class="hi-team ${g.winner === 'B' ? 'winner' : 'loser'}">${esc(tB)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function exportHistory() {
+  const sess = state.session;
+  if (!sess.games.length) { toast('No games to export'); return; }
+  const lines = ['Game,Team A,Team B,Score A,Score B,Winner'];
+  for (const g of sess.games) {
+    const tA = g.teamA.map(id => getPlayer(id).name).join(' & ');
+    const tB = g.teamB.map(id => getPlayer(id).name).join(' & ');
+    lines.push(`${g.num},"${tA}","${tB}",${g.scoreA},${g.scoreB},${g.winner}`);
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'shuttle-history.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported CSV');
+}
+
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+
+function adjustSetting(key, delta) {
+  const limits = { maxConsecutive: [1, 10], defaultScore: [11, 30] };
+  const [min, max] = limits[key];
+  state.settings[key] = Math.max(min, Math.min(max, state.settings[key] + delta));
+  document.getElementById('setting' + key.charAt(0).toUpperCase() + key.slice(1)).textContent = state.settings[key];
+  save();
+}
+
+function toggleSetting(key) {
+  state.settings[key] = !state.settings[key];
+  const el = document.getElementById('toggle' + key.charAt(0).toUpperCase() + key.slice(1));
+  if (el) el.className = 'toggle' + (state.settings[key] ? ' on' : '');
+  save();
+}
+
+function syncSettingsUI() {
+  document.getElementById('settingMaxConsecutive').textContent = state.settings.maxConsecutive;
+  document.getElementById('settingDefaultScore').textContent = state.settings.defaultScore;
+  document.getElementById('toggleRandomFirst').className = 'toggle' + (state.settings.randomFirst ? ' on' : '');
+}
+
+// ══════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════
+
+function showNewSessionModal() { document.getElementById('newSessionModal').classList.remove('hidden'); }
+function showSettingsModal() { syncSettingsUI(); document.getElementById('settingsModal').classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.add('hidden'); });
+});
+
+// ══════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════
+
+function toast(msg) {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+
+function getPlayer(id) {
+  return state.players.find(p => p.id === id) || { id, name: '?', active: false };
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════
+//  PWA SERVICE WORKER
+// ══════════════════════════════════════════════
+
+if ('serviceWorker' in navigator) {
+  const swCode = `
+const CACHE = 'shuttle-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});
+  `;
+  const blob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swURL).catch(() => {});
+}
+
+// Web App Manifest
+const manifest = {
+  name: 'Shuttle — Badminton Manager',
+  short_name: 'Shuttle',
+  start_url: '.',
+  display: 'standalone',
+  background_color: '#0a0a0f',
+  theme_color: '#0a0a0f',
+  icons: [{
+    src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="%230a0a0f"/><text y=".9em" font-size="80" x="10">🏸</text></svg>',
+    sizes: '192x192',
+    type: 'image/svg+xml'
+  }]
+};
+const mBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const mLink = document.createElement('link');
+mLink.rel = 'manifest'; mLink.href = URL.createObjectURL(mBlob);
+document.head.appendChild(mLink);
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+
+load();
+
+// Seed some default players if none exist
+if (state.players.length === 0) {
+  ['Alex', 'Jordan', 'Sam', 'Taylor', 'Morgan', 'Casey', 'Riley', 'Quinn'].forEach(name => {
+    state.players.push({ id: 'p' + Math.random().toString(36).slice(2), name, active: false });
+  });
+  save();
+}
+
+renderPlayers();
+if (state.session.active) {
+  renderCourt();
+}
+syncSettingsUI();
+
+// Score defaults
+scoreA = state.settings.defaultScore;
+scoreB = Math.max(0, state.settings.defaultScore - 6);
+if (document.getElementById('scoreA')) {
+  document.getElementById('scoreA').textContent = scoreA;
+  document.getElementById('scoreB').textContent = scoreB;
+}
+</script>
+</body>
+</html>
