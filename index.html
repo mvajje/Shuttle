@@ -1005,7 +1005,7 @@
           </div>
         </div>
       </div>
-      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="recordGame()">
+      <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="document.getElementById('confirmGameModal').classList.remove('hidden')">
         ✓ RECORD RESULT & NEXT GAME
       </button>
     </div>
@@ -1120,6 +1120,18 @@
 </nav>
 
 <!-- ── MODALS ── -->
+<div class="modal-overlay hidden" id="confirmGameModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✓ CONFIRM RESULT</div>
+    <p style="font-size:14px; color:var(--muted);">Confirm current game is finished. This will record the score and move to the next game.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('confirmGameModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('confirmGameModal'); recordGame();">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="newSessionModal">
   <div class="modal">
     <div class="modal-handle"></div>
